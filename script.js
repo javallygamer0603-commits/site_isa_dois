@@ -12,6 +12,7 @@ let particles = [];
 let targets = [];
 let textTargets = [];
 let heartTargets = [];
+let highlightedTextTargets = [];
 let forming = false;
 let formationProgress = 0;
 let pulse = 0;
@@ -62,6 +63,7 @@ function createParticles(count) {
     tx: rand(0, w),
     ty: rand(0, h),
     targetType: 'heart',
+    emphasis: false,
     size: rand(1.4, 2.9),
     redMix: rand(0, 1),
   }));
@@ -138,10 +140,20 @@ function buildTargets(w, h) {
   const textOffsetY = h * 0.685;
 
   textTargets = rawText.map((p) => ({
-    x: p.x + textOffsetX,
-    y: p.y + textOffsetY,
-    type: 'text',
-  }));
+    const nx = p.x / textWidth;
+    const isE = Math.abs(nx - 0.095) < 0.04;
+    const isS = Math.abs(nx - 0.81) < 0.04;
+    const isA = Math.abs(nx - 0.9) < 0.038;
+
+    return {
+      x: p.x + textOffsetX,
+      y: p.y + textOffsetY,
+      type: 'text',
+      highlight: isE || isS || isA,
+    };
+  });
+
+  highlightedTextTargets = textTargets.filter((t) => t.highlight);
 
   return heartTargets.concat(textTargets);
 }
@@ -151,20 +163,29 @@ function assignTargets() {
 
   const ratio = isMobile ? MOBILE_TEXT_PARTICLE_RATIO : TEXT_PARTICLE_RATIO;
   const textCount = Math.floor(particles.length * ratio);
+  const highlightCount = Math.min(
+    textCount,
+    Math.floor(textCount * 0.4),
+    highlightedTextTargets.length ? textCount : 0
+  );
 
   for (let i = 0; i < particles.length; i += 1) {
     const p = particles[i];
 
     if (i < textCount) {
-      const t = textTargets[(i * 17) % textTargets.length];
+      const useHighlight = i < highlightCount && highlightedTextTargets.length;
+      const pool = useHighlight ? highlightedTextTargets : textTargets;
+      const t = pool[(i * 17) % pool.length];
       p.tx = t.x + rand(-0.35, 0.35);
       p.ty = t.y + rand(-0.35, 0.35);
       p.targetType = 'text';
+      p.emphasis = Boolean(t.highlight);
     } else {
       const t = heartTargets[(i * 13) % heartTargets.length];
       p.tx = t.x + rand(-0.7, 0.7);
       p.ty = t.y + rand(-0.7, 0.7);
       p.targetType = 'heart';
+      p.emphasis = false;
     }
   }
 }
@@ -254,8 +275,10 @@ function drawParticles() {
     const red = Math.floor(228 + p.redMix * 27);
     const green = Math.floor(18 + p.redMix * 72);
     const blue = Math.floor(38 + p.redMix * 48);
-    const color = textMode ? 'rgba(255,255,255,1)' : `rgba(${red},${green},${blue},0.72)`;
-    const size = textMode ? p.size * (isMobile ? 2.1 : 1.7) : p.size;
+    const textAlpha = p.emphasis ? 1 : 0.96;
+    const color = textMode ? `rgba(255,255,255,${textAlpha})` : `rgba(${red},${green},${blue},0.72)`;
+    const sizeBoost = p.emphasis ? (isMobile ? 2.55 : 2.05) : (isMobile ? 2.1 : 1.7);
+    const size = textMode ? p.size * sizeBoost : p.size;
 
     ctx.beginPath();
     ctx.fillStyle = color;
