@@ -19,8 +19,8 @@ let pulse = 0;
 
 const FORM_DELAY_MS = 3200;
 const FORM_PROGRESS_STEP = 0.0017;
-const TEXT_PARTICLE_RATIO = 0.5;
-const MOBILE_TEXT_PARTICLE_RATIO = 0.46;
+const TEXT_PARTICLE_RATIO = 0.48;
+const MOBILE_TEXT_PARTICLE_RATIO = 0.44;
 const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
 function rand(min, max) {
@@ -107,7 +107,7 @@ function buildTextTargets(text, w, h) {
   off.height = Math.max(1, Math.floor(h));
 
   const octx = off.getContext('2d');
-  const fontSize = Math.max(56, Math.floor(w * 0.092));
+  const fontSize = Math.max(58, Math.floor(w * 0.094));
   octx.clearRect(0, 0, off.width, off.height);
   octx.fillStyle = '#ffffff';
   octx.textAlign = 'center';
@@ -117,7 +117,7 @@ function buildTextTargets(text, w, h) {
 
   const data = octx.getImageData(0, 0, off.width, off.height).data;
   const pts = [];
-  const gap = Math.max(2, Math.floor(w / 560));
+  const gap = Math.max(2, Math.floor(w / 700));
 
   for (let y = 0; y < off.height; y += gap) {
     for (let x = 0; x < off.width; x += gap) {
@@ -165,7 +165,7 @@ function assignTargets() {
   const textCount = Math.floor(particles.length * ratio);
   const highlightCount = Math.min(
     textCount,
-    Math.floor(textCount * 0.4),
+    Math.floor(textCount * 0.28),
     highlightedTextTargets.length ? textCount : 0
   );
 
@@ -176,8 +176,8 @@ function assignTargets() {
       const useHighlight = i < highlightCount && highlightedTextTargets.length;
       const pool = useHighlight ? highlightedTextTargets : textTargets;
       const t = pool[(i * 17) % pool.length];
-      p.tx = t.x + rand(-0.35, 0.35);
-      p.ty = t.y + rand(-0.35, 0.35);
+      p.tx = t.x + rand(-0.12, 0.12);
+      p.ty = t.y + rand(-0.12, 0.12);
       p.targetType = 'text';
       p.emphasis = Boolean(t.highlight);
     } else {
@@ -203,7 +203,7 @@ function updateParticles() {
     if (forming) {
       const isText = p.targetType === 'text';
       const pullBase = 0.0032 + formationProgress * 0.022;
-      const mobileTextBoost = isMobile && isText ? 1.22 : 1;
+      const mobileTextBoost = isMobile && isText ? 1.15 : 1;
       const pull = isText ? pullBase * 1.45 * mobileTextBoost : pullBase;
       const damping = isText
         ? (0.955 - formationProgress * 0.13 - (isMobile ? 0.03 : 0))
@@ -214,13 +214,13 @@ function updateParticles() {
       p.vx *= damping;
       p.vy *= damping;
 
-      if (isText && formationProgress > 0.72) {
+      if (isText && formationProgress > 0.68) {
         // Snap final para manter o texto sempre legivel.
-        const snap = isMobile ? 0.26 : 0.2;
+        const snap = isMobile ? 0.28 : 0.24;
         p.x += (p.tx - p.x) * snap;
         p.y += (p.ty - p.y) * snap;
-        p.vx *= 0.45;
-        p.vy *= 0.45;
+        p.vx *= 0.35;
+        p.vy *= 0.35;
       }
     } else {
       p.vx += rand(-0.045, 0.045);
@@ -275,9 +275,9 @@ function drawParticles() {
     const red = Math.floor(228 + p.redMix * 27);
     const green = Math.floor(18 + p.redMix * 72);
     const blue = Math.floor(38 + p.redMix * 48);
-    const textAlpha = p.emphasis ? 1 : 0.96;
+    const textAlpha = p.emphasis ? 1 : 0.98;
     const color = textMode ? `rgba(255,255,255,${textAlpha})` : `rgba(${red},${green},${blue},0.72)`;
-    const sizeBoost = p.emphasis ? (isMobile ? 2.55 : 2.05) : (isMobile ? 2.1 : 1.7);
+    const sizeBoost = p.emphasis ? (isMobile ? 1.35 : 1.2) : (isMobile ? 1.15 : 1.05);
     const size = textMode ? p.size * sizeBoost : p.size;
 
     ctx.beginPath();
