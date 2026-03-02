@@ -19,6 +19,7 @@ let pulse = 0;
 const FORM_DELAY_MS = 3200;
 const FORM_PROGRESS_STEP = 0.0017;
 const TEXT_PARTICLE_RATIO = 0.52;
+const MOBILE_TEXT_PARTICLE_RATIO = 0.36;
 const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
 function rand(min, max) {
@@ -146,7 +147,8 @@ function buildTargets(w, h) {
 function assignTargets() {
   if (!targets.length || !heartTargets.length || !textTargets.length) return;
 
-  const textCount = Math.floor(particles.length * TEXT_PARTICLE_RATIO);
+  const ratio = isMobile ? MOBILE_TEXT_PARTICLE_RATIO : TEXT_PARTICLE_RATIO;
+  const textCount = Math.floor(particles.length * ratio);
 
   for (let i = 0; i < particles.length; i += 1) {
     const p = particles[i];
