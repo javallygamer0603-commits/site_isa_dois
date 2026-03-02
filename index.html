@@ -1,0 +1,59 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadeado do Amor</title>
+  <meta name="description" content="Cadeado romantico com senha de 4 digitos." />
+  <link rel="stylesheet" href="lock.css" />
+</head>
+<body>
+  <main>
+    <section class="lock" id="lock" aria-label="Cadeado com senha de 4 digitos">
+      <div class="shackle" id="shackle" aria-hidden="true"></div>
+
+      <div class="body">
+        <div class="display" id="dialRow">
+          <div class="dial" data-index="0">
+            <span id="digit0">0</span>
+            <div class="arrows">
+              <button type="button" class="arrow" data-dir="up" aria-label="Aumentar primeiro digito">▲</button>
+              <button type="button" class="arrow" data-dir="down" aria-label="Diminuir primeiro digito">▼</button>
+            </div>
+          </div>
+
+          <div class="dial" data-index="1">
+            <span id="digit1">0</span>
+            <div class="arrows">
+              <button type="button" class="arrow" data-dir="up" aria-label="Aumentar segundo digito">▲</button>
+              <button type="button" class="arrow" data-dir="down" aria-label="Diminuir segundo digito">▼</button>
+            </div>
+          </div>
+
+          <div class="dial" data-index="2">
+            <span id="digit2">0</span>
+            <div class="arrows">
+              <button type="button" class="arrow" data-dir="up" aria-label="Aumentar terceiro digito">▲</button>
+              <button type="button" class="arrow" data-dir="down" aria-label="Diminuir terceiro digito">▼</button>
+            </div>
+          </div>
+
+          <div class="dial" data-index="3">
+            <span id="digit3">0</span>
+            <div class="arrows">
+              <button type="button" class="arrow" data-dir="up" aria-label="Aumentar quarto digito">▲</button>
+              <button type="button" class="arrow" data-dir="down" aria-label="Diminuir quarto digito">▼</button>
+            </div>
+          </div>
+        </div>
+
+        <button id="unlockBtn" class="unlock-btn" type="button">Abrir Cadeado</button>
+        <p id="status">Dica: O Primeiro Olhar</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="lock.js"></script>
+</body>
+</html>
+

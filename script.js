@@ -1,0 +1,269 @@
+﻿const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+
+let dpr = 1;
+let particles = [];
+let targets = [];
+let textTargets = [];
+let heartTargets = [];
+let forming = false;
+let formationProgress = 0;
+let pulse = 0;
+
+const FORM_DELAY_MS = 3200;
+const FORM_PROGRESS_STEP = 0.0017;
+const TEXT_PARTICLE_RATIO = 0.52;
+
+function rand(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+function resize() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  dpr = Math.max(1, window.devicePixelRatio || 1);
+  canvas.width = Math.floor(w * dpr);
+  canvas.height = Math.floor(h * dpr);
+  canvas.style.width = `${w}px`;
+  canvas.style.height = `${h}px`;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  if (!particles.length) {
+    const count = Math.max(2200, Math.min(3800, Math.floor((w * h) / 470)));
+    createParticles(count);
+  }
+
+  if (forming) {
+    targets = buildTargets(w, h);
+    assignTargets();
+  }
+}
+
+function createParticles(count) {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  particles = Array.from({ length: count }, () => ({
+    x: rand(0, w),
+    y: rand(0, h),
+    vx: rand(-1.1, 1.1),
+    vy: rand(-1.1, 1.1),
+    tx: rand(0, w),
+    ty: rand(0, h),
+    targetType: 'heart',
+    size: rand(1.4, 2.9),
+    redMix: rand(0, 1),
+  }));
+}
+
+function heartCurve(t) {
+  const x = 16 * Math.pow(Math.sin(t), 3);
+  const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+  return { x, y };
+}
+
+function buildHeartTargets(cx, cy, scale) {
+  const pts = [];
+
+  for (let i = 0; i < 2200; i += 1) {
+    const t = rand(0, Math.PI * 2);
+    const fill = Math.sqrt(Math.random());
+    const c = heartCurve(t);
+    pts.push({
+      x: cx + c.x * scale * fill,
+      y: cy - c.y * scale * fill,
+      type: 'heart',
+    });
+  }
+
+  for (let t = 0; t < Math.PI * 2; t += 0.008) {
+    const c = heartCurve(t);
+    pts.push({
+      x: cx + c.x * scale,
+      y: cy - c.y * scale,
+      type: 'heart',
+    });
+  }
+
+  return pts;
+}
+
+function buildTextTargets(text, w, h) {
+  const off = document.createElement('canvas');
+  off.width = Math.max(1, Math.floor(w));
+  off.height = Math.max(1, Math.floor(h));
+
+  const octx = off.getContext('2d');
+  const fontSize = Math.max(48, Math.floor(w * 0.083));
+  octx.clearRect(0, 0, off.width, off.height);
+  octx.fillStyle = '#ffffff';
+  octx.textAlign = 'center';
+  octx.textBaseline = 'middle';
+  octx.font = `700 ${fontSize}px Montserrat, sans-serif`;
+  octx.fillText(text, off.width / 2, off.height / 2);
+
+  const data = octx.getImageData(0, 0, off.width, off.height).data;
+  const pts = [];
+  const gap = Math.max(2, Math.floor(w / 420));
+
+  for (let y = 0; y < off.height; y += gap) {
+    for (let x = 0; x < off.width; x += gap) {
+      if (data[(y * off.width + x) * 4 + 3] > 90) {
+        pts.push({ x, y, type: 'text' });
+      }
+    }
+  }
+
+  return pts;
+}
+
+function buildTargets(w, h) {
+  heartTargets = buildHeartTargets(w * 0.5, h * 0.395, Math.min(w, h) * 0.0139);
+
+  const textWidth = Math.min(w * 0.92, 1040);
+  const textHeight = Math.max(120, h * 0.18);
+  const rawText = buildTextTargets('Eu Te Amo Isa', textWidth, textHeight);
+  const textOffsetX = (w - textWidth) / 2;
+  const textOffsetY = h * 0.685;
+
+  textTargets = rawText.map((p) => ({
+    x: p.x + textOffsetX,
+    y: p.y + textOffsetY,
+    type: 'text',
+  }));
+
+  return heartTargets.concat(textTargets);
+}
+
+function assignTargets() {
+  if (!targets.length || !heartTargets.length || !textTargets.length) return;
+
+  const textCount = Math.floor(particles.length * TEXT_PARTICLE_RATIO);
+
+  for (let i = 0; i < particles.length; i += 1) {
+    const p = particles[i];
+
+    if (i < textCount) {
+      const t = textTargets[(i * 17) % textTargets.length];
+      p.tx = t.x + rand(-0.35, 0.35);
+      p.ty = t.y + rand(-0.35, 0.35);
+      p.targetType = 'text';
+    } else {
+      const t = heartTargets[(i * 13) % heartTargets.length];
+      p.tx = t.x + rand(-0.7, 0.7);
+      p.ty = t.y + rand(-0.7, 0.7);
+      p.targetType = 'heart';
+    }
+  }
+}
+
+function updateParticles() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  if (forming) {
+    formationProgress = Math.min(1, formationProgress + FORM_PROGRESS_STEP);
+  }
+
+  for (const p of particles) {
+    if (forming) {
+      const isText = p.targetType === 'text';
+      const pullBase = 0.0032 + formationProgress * 0.022;
+      const pull = isText ? pullBase * 1.45 : pullBase;
+      const damping = isText ? (0.955 - formationProgress * 0.13) : (0.965 - formationProgress * 0.11);
+
+      p.vx += (p.tx - p.x) * pull;
+      p.vy += (p.ty - p.y) * pull;
+      p.vx *= damping;
+      p.vy *= damping;
+
+      if (isText && formationProgress > 0.82) {
+        // Snap final para manter o texto sempre legivel.
+        p.x += (p.tx - p.x) * 0.14;
+        p.y += (p.ty - p.y) * 0.14;
+        p.vx *= 0.6;
+        p.vy *= 0.6;
+      }
+    } else {
+      p.vx += rand(-0.045, 0.045);
+      p.vy += rand(-0.045, 0.045);
+      p.vx = Math.max(-1.1, Math.min(1.1, p.vx));
+      p.vy = Math.max(-1.1, Math.min(1.1, p.vy));
+    }
+
+    p.x += p.vx;
+    p.y += p.vy;
+
+    if (p.x < -2) p.x = w + 2;
+    if (p.x > w + 2) p.x = -2;
+    if (p.y < -2) p.y = h + 2;
+    if (p.y > h + 2) p.y = -2;
+  }
+}
+
+function drawGlow(w, h) {
+  if (!forming) return;
+
+  pulse += 0.03;
+  const heartAlpha = 0.16 + Math.sin(pulse) * 0.03;
+
+  const heartGlow = ctx.createRadialGradient(
+    w * 0.5,
+    h * 0.405,
+    30,
+    w * 0.5,
+    h * 0.405,
+    Math.min(w, h) * 0.31
+  );
+  heartGlow.addColorStop(0, `rgba(255, 70, 120, ${heartAlpha})`);
+  heartGlow.addColorStop(0.45, 'rgba(255, 70, 120, 0.09)');
+  heartGlow.addColorStop(1, 'rgba(255, 70, 120, 0)');
+
+  ctx.fillStyle = heartGlow;
+  ctx.fillRect(0, 0, w, h);
+}
+
+function drawParticles() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  ctx.fillStyle = forming ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.48)';
+  ctx.fillRect(0, 0, w, h);
+
+  drawGlow(w, h);
+
+  for (const p of particles) {
+    const textMode = forming && p.targetType === 'text';
+    const red = Math.floor(228 + p.redMix * 27);
+    const green = Math.floor(18 + p.redMix * 72);
+    const blue = Math.floor(38 + p.redMix * 48);
+    const color = textMode ? 'rgba(255,255,255,1)' : `rgba(${red},${green},${blue},0.97)`;
+    const size = textMode ? p.size * 1.35 : p.size;
+
+    ctx.beginPath();
+    ctx.fillStyle = color;
+    ctx.shadowColor = textMode ? 'rgba(0,0,0,0)' : `rgba(${red},${Math.floor(green + 8)},${Math.floor(blue + 8)},0.82)`;
+    ctx.shadowBlur = textMode ? 0 : 8;
+    ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.shadowBlur = 0;
+}
+
+function animate() {
+  updateParticles();
+  drawParticles();
+  requestAnimationFrame(animate);
+}
+
+window.addEventListener('resize', resize);
+resize();
+animate();
+
+setTimeout(() => {
+  forming = true;
+  targets = buildTargets(window.innerWidth, window.innerHeight);
+  assignTargets();
+}, FORM_DELAY_MS);
