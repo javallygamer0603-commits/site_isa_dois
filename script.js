@@ -19,7 +19,7 @@ let pulse = 0;
 const FORM_DELAY_MS = 3200;
 const FORM_PROGRESS_STEP = 0.0017;
 const TEXT_PARTICLE_RATIO = 0.52;
-const MOBILE_TEXT_PARTICLE_RATIO = 0.36;
+const MOBILE_TEXT_PARTICLE_RATIO = 0.26;
 const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
 function rand(min, max) {
