@@ -19,7 +19,7 @@ let pulse = 0;
 const FORM_DELAY_MS = 3200;
 const FORM_PROGRESS_STEP = 0.0017;
 const TEXT_PARTICLE_RATIO = 0.52;
-const MOBILE_TEXT_PARTICLE_RATIO = 0.26;
+const MOBILE_TEXT_PARTICLE_RATIO = 0.42;
 const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
 function rand(min, max) {
@@ -38,7 +38,9 @@ function resize() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   if (!particles.length) {
-    const count = Math.max(2200, Math.min(3800, Math.floor((w * h) / 470)));
+    const count = isMobile
+      ? Math.max(1300, Math.min(2100, Math.floor((w * h) / 520)))
+      : Math.max(2200, Math.min(3800, Math.floor((w * h) / 470)));
     createParticles(count);
   }
 
@@ -253,7 +255,7 @@ function drawParticles() {
     const green = Math.floor(18 + p.redMix * 72);
     const blue = Math.floor(38 + p.redMix * 48);
     const color = textMode ? 'rgba(255,255,255,1)' : `rgba(${red},${green},${blue},0.97)`;
-    const size = textMode ? p.size * 1.35 : p.size;
+    const size = textMode ? p.size * (isMobile ? 1.65 : 1.35) : p.size;
 
     ctx.beginPath();
     ctx.fillStyle = color;
