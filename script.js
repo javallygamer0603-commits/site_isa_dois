@@ -19,6 +19,7 @@ let pulse = 0;
 const FORM_DELAY_MS = 3200;
 const FORM_PROGRESS_STEP = 0.0017;
 const TEXT_PARTICLE_RATIO = 0.52;
+const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
 function rand(min, max) {
   return Math.random() * (max - min) + min;
@@ -169,15 +170,19 @@ function updateParticles() {
   const h = window.innerHeight;
 
   if (forming) {
-    formationProgress = Math.min(1, formationProgress + FORM_PROGRESS_STEP);
+    const progressStep = isMobile ? FORM_PROGRESS_STEP * 1.25 : FORM_PROGRESS_STEP;
+    formationProgress = Math.min(1, formationProgress + progressStep);
   }
 
   for (const p of particles) {
     if (forming) {
       const isText = p.targetType === 'text';
       const pullBase = 0.0032 + formationProgress * 0.022;
-      const pull = isText ? pullBase * 1.45 : pullBase;
-      const damping = isText ? (0.955 - formationProgress * 0.13) : (0.965 - formationProgress * 0.11);
+      const mobileTextBoost = isMobile && isText ? 1.22 : 1;
+      const pull = isText ? pullBase * 1.45 * mobileTextBoost : pullBase;
+      const damping = isText
+        ? (0.955 - formationProgress * 0.13 - (isMobile ? 0.03 : 0))
+        : (0.965 - formationProgress * 0.11);
 
       p.vx += (p.tx - p.x) * pull;
       p.vy += (p.ty - p.y) * pull;
@@ -186,8 +191,9 @@ function updateParticles() {
 
       if (isText && formationProgress > 0.82) {
         // Snap final para manter o texto sempre legivel.
-        p.x += (p.tx - p.x) * 0.14;
-        p.y += (p.ty - p.y) * 0.14;
+        const snap = isMobile ? 0.2 : 0.14;
+        p.x += (p.tx - p.x) * snap;
+        p.y += (p.ty - p.y) * snap;
         p.vx *= 0.6;
         p.vy *= 0.6;
       }
