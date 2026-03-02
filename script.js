@@ -176,8 +176,9 @@ function assignTargets() {
       const useHighlight = i < highlightCount && highlightedTextTargets.length;
       const pool = useHighlight ? highlightedTextTargets : textTargets;
       const t = pool[(i * 17) % pool.length];
-      p.tx = t.x + rand(-0.35, 0.35);
-      p.ty = t.y + rand(-0.35, 0.35);
+      const spread = isMobile ? 0.18 : 0.35;
+      p.tx = t.x + rand(-spread, spread);
+      p.ty = t.y + rand(-spread, spread);
       p.targetType = 'text';
       p.emphasis = Boolean(t.highlight);
     } else {
@@ -203,7 +204,7 @@ function updateParticles() {
     if (forming) {
       const isText = p.targetType === 'text';
       const pullBase = 0.0032 + formationProgress * 0.022;
-      const mobileTextBoost = isMobile && isText ? 1.22 : 1;
+      const mobileTextBoost = isMobile && isText ? 1.1 : 1;
       const pull = isText ? pullBase * 1.45 * mobileTextBoost : pullBase;
       const damping = isText
         ? (0.955 - formationProgress * 0.13 - (isMobile ? 0.03 : 0))
@@ -216,7 +217,7 @@ function updateParticles() {
 
       if (isText && formationProgress > 0.72) {
         // Snap final para manter o texto sempre legivel.
-        const snap = isMobile ? 0.26 : 0.2;
+        const snap = isMobile ? 0.32 : 0.2;
         p.x += (p.tx - p.x) * snap;
         p.y += (p.ty - p.y) * snap;
         p.vx *= 0.45;
@@ -277,7 +278,7 @@ function drawParticles() {
     const blue = Math.floor(38 + p.redMix * 48);
     const textAlpha = p.emphasis ? 1 : 0.96;
     const color = textMode ? `rgba(255,255,255,${textAlpha})` : `rgba(${red},${green},${blue},0.72)`;
-    const sizeBoost = p.emphasis ? (isMobile ? 2.55 : 2.05) : (isMobile ? 2.1 : 1.7);
+    const sizeBoost = p.emphasis ? (isMobile ? 1.55 : 2.05) : (isMobile ? 1.18 : 1.7);
     const size = textMode ? p.size * sizeBoost : p.size;
 
     ctx.beginPath();
