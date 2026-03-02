@@ -139,7 +139,7 @@ function buildTargets(w, h) {
   const textOffsetX = (w - textWidth) / 2;
   const textOffsetY = h * 0.685;
 
-  textTargets = rawText.map((p) => ({
+  textTargets = rawText.map((p) => {
     const nx = p.x / textWidth;
     const isE = Math.abs(nx - 0.095) < 0.04;
     const isS = Math.abs(nx - 0.81) < 0.04;
