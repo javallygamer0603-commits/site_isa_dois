@@ -19,8 +19,8 @@ let pulse = 0;
 
 const FORM_DELAY_MS = 3200;
 const FORM_PROGRESS_STEP = 0.0017;
-const TEXT_PARTICLE_RATIO = 0.6;
-const MOBILE_TEXT_PARTICLE_RATIO = 0.56;
+const TEXT_PARTICLE_RATIO = 0.48;
+const MOBILE_TEXT_PARTICLE_RATIO = 0.44;
 const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
 function rand(min, max) {
@@ -117,7 +117,7 @@ function buildTextTargets(text, w, h) {
 
   const data = octx.getImageData(0, 0, off.width, off.height).data;
   const pts = [];
-  const gap = Math.max(2, Math.floor(w / 900));
+  const gap = Math.max(2, Math.floor(w / 700));
 
   for (let y = 0; y < off.height; y += gap) {
     for (let x = 0; x < off.width; x += gap) {
@@ -277,7 +277,7 @@ function drawParticles() {
     const blue = Math.floor(38 + p.redMix * 48);
     const textAlpha = p.emphasis ? 1 : 0.98;
     const color = textMode ? `rgba(255,255,255,${textAlpha})` : `rgba(${red},${green},${blue},0.72)`;
-    const sizeBoost = p.emphasis ? (isMobile ? 1.12 : 1.06) : (isMobile ? 0.98 : 0.92);
+    const sizeBoost = p.emphasis ? (isMobile ? 1.35 : 1.2) : (isMobile ? 1.15 : 1.05);
     const size = textMode ? p.size * sizeBoost : p.size;
 
     ctx.beginPath();
