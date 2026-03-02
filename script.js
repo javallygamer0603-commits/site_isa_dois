@@ -1,4 +1,10 @@
-﻿const canvas = document.getElementById('particles');
+﻿const unlockGate = sessionStorage.getItem('fromLock');
+if (unlockGate !== '1') {
+  window.location.replace('index.html');
+}
+sessionStorage.removeItem('fromLock');
+
+const canvas = document.getElementById('particles');
 const ctx = canvas.getContext('2d');
 
 let dpr = 1;
@@ -267,3 +273,4 @@ setTimeout(() => {
   targets = buildTargets(window.innerWidth, window.innerHeight);
   assignTargets();
 }, FORM_DELAY_MS);
+

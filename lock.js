@@ -30,6 +30,7 @@ function checkCombination() {
     lock.classList.add('unlocked');
 
     setTimeout(() => {
+      sessionStorage.setItem('fromLock', '1');
       window.location.href = 'surpresa.html';
     }, 1000);
   } else {
@@ -60,4 +61,5 @@ if (statusElement) {
 }
 
 renderDigits();
+
 
