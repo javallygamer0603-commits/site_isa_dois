@@ -18,8 +18,8 @@ let pulse = 0;
 
 const FORM_DELAY_MS = 3200;
 const FORM_PROGRESS_STEP = 0.0017;
-const TEXT_PARTICLE_RATIO = 0.52;
-const MOBILE_TEXT_PARTICLE_RATIO = 0.42;
+const TEXT_PARTICLE_RATIO = 0.62;
+const MOBILE_TEXT_PARTICLE_RATIO = 0.58;
 const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
 function rand(min, max) {
@@ -105,7 +105,7 @@ function buildTextTargets(text, w, h) {
   off.height = Math.max(1, Math.floor(h));
 
   const octx = off.getContext('2d');
-  const fontSize = Math.max(48, Math.floor(w * 0.083));
+  const fontSize = Math.max(56, Math.floor(w * 0.092));
   octx.clearRect(0, 0, off.width, off.height);
   octx.fillStyle = '#ffffff';
   octx.textAlign = 'center';
@@ -115,7 +115,7 @@ function buildTextTargets(text, w, h) {
 
   const data = octx.getImageData(0, 0, off.width, off.height).data;
   const pts = [];
-  const gap = Math.max(2, Math.floor(w / 420));
+  const gap = Math.max(2, Math.floor(w / 560));
 
   for (let y = 0; y < off.height; y += gap) {
     for (let x = 0; x < off.width; x += gap) {
@@ -193,13 +193,13 @@ function updateParticles() {
       p.vx *= damping;
       p.vy *= damping;
 
-      if (isText && formationProgress > 0.82) {
+      if (isText && formationProgress > 0.72) {
         // Snap final para manter o texto sempre legivel.
-        const snap = isMobile ? 0.2 : 0.14;
+        const snap = isMobile ? 0.26 : 0.2;
         p.x += (p.tx - p.x) * snap;
         p.y += (p.ty - p.y) * snap;
-        p.vx *= 0.6;
-        p.vy *= 0.6;
+        p.vx *= 0.45;
+        p.vy *= 0.45;
       }
     } else {
       p.vx += rand(-0.045, 0.045);
@@ -244,7 +244,7 @@ function drawParticles() {
   const w = window.innerWidth;
   const h = window.innerHeight;
 
-  ctx.fillStyle = forming ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.48)';
+  ctx.fillStyle = forming ? 'rgba(0, 0, 0, 0.34)' : 'rgba(0, 0, 0, 0.48)';
   ctx.fillRect(0, 0, w, h);
 
   drawGlow(w, h);
@@ -254,8 +254,8 @@ function drawParticles() {
     const red = Math.floor(228 + p.redMix * 27);
     const green = Math.floor(18 + p.redMix * 72);
     const blue = Math.floor(38 + p.redMix * 48);
-    const color = textMode ? 'rgba(255,255,255,1)' : `rgba(${red},${green},${blue},0.97)`;
-    const size = textMode ? p.size * (isMobile ? 1.65 : 1.35) : p.size;
+    const color = textMode ? 'rgba(255,255,255,1)' : `rgba(${red},${green},${blue},0.72)`;
+    const size = textMode ? p.size * (isMobile ? 2.1 : 1.7) : p.size;
 
     ctx.beginPath();
     ctx.fillStyle = color;
